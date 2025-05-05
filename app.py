@@ -41,9 +41,16 @@ else:
 # Choose a model appropriate for the task (multimodal if handling files)
 MODEL_NAME = "gemini-2.0-flash-exp-image-generation" # Changed to 1.5 flash - good balance
 CHAT_MODEL = "gemini-2.0-flash-lite"
-llm = ChatGoogleGenerativeAI(model=MODEL_NAME, temperature=0.1)
-
 # Send a creative prompt to the LLM
+
+def call_gemini(prompt):
+    prompt_parts = [types.Part.from_text(text=prompt)]
+    response = client.models.generate_content(
+            model="gemini-1.5-flash", 
+            contents=[types.Content(role="user", parts=prompt_parts)],
+            # stream=False # Default is False, explicitly set if needed
+        )
+    return response
 
 
 
@@ -53,18 +60,14 @@ def ama():
         question = data.get('question', '')
         history = data.get('history', '')
         hist = f"""Here's the previous chat history: {history}"""
-        prompt ="You are Ask Me Anything on Math Theories Assistant. Respond based on user question and for low context questions respond by analyzing previous chat history. Also in your response for giving focus to any specific word return those words with different font colors. In your responses dont mention extra things like Okay, 'I can answer your question' and dont mention 'Based on our previous conversation, you're asking about' respond by analyzing the context and behave as you are human assistant responding what you are asked for."
-        prompt+=hist + "\n question : "+ question
-        response = llm.invoke(prompt)
+        instructional_text ="You are Ask Me Anything on Math Theories Assistant. Respond based on user question and for low context questions respond by analyzing previous chat history. Also in your response for giving focus to any specific word return those words with different font colors. In your responses dont mention extra things like Okay, 'I can answer your question' and dont mention 'Based on our previous conversation, you're asking about' respond by analyzing the context and behave as you are human assistant responding what you are asked for."
+        instructional_text+=hist + "\n question : "+ question
+        response = call_gemini(instructional_text)
+        
+        
 
         # Return the solution
-        return jsonify({"answer": response.content.replace("*","")})
-
-
-    
-    
-
-    
+        return jsonify({"answer": response.text.replace("*","")})
 
 
 # --- Helper Function to Build Prompt Parts (REVISED) ---
@@ -306,8 +309,8 @@ def solve_math():
             solution_text = response.text
             concept_prompt = "Based on below solution of a math problem uploaded by user. Identify the concept involve in the problem to solve it. Generate the output with only provide Concept identified in the below problem. Write one liner description of the identified concept. Do not include any introductory text only give the concept involved in the problem. "
             concept_prompt += "Solution :\n" + solution_text
-            response_concept = llm.invoke(concept_prompt)
-            logging.info(f"Received response_concept: {response_concept.content}")
+            response_concept =call_gemini(concept_prompt)
+            logging.info(f"Received response_concept: {response_concept.text}")
 
         except ValueError:
             # This might occur if the response structure is unexpected or blocked in a way
@@ -513,14 +516,7 @@ def check():
             except Exception as cleanup_error:
                 logging.error(f"Error cleaning up temporary file {temp_file_path}: {cleanup_error}")
 
-        # if uploaded_gemini_file_obj: # Check the object used for the API call
-        #     try:
-        #         logging.info(f"Attempting to delete uploaded file from File API: {uploaded_gemini_file_obj.name}")
-        #         genai.delete_file(name=uploaded_gemini_file_obj.name)
-        #         logging.info(f"Successfully deleted file {uploaded_gemini_file_obj.name} from File API.")
-        #     except Exception as delete_error:
-        #         logging.error(f"Error deleting file {uploaded_gemini_file_obj.name} from File API: {delete_error}")
-
+       
 
 def build_clarification_prompt_parts(original_problem_text, original_file_uri, full_solution, step_number, user_question):
     """Builds prompt parts for the clarification request."""
@@ -633,10 +629,7 @@ def clarify_step():
                 return jsonify({"error": f"AI clarification generation stopped unexpectedly ({finish_reason})."}), 500
             return jsonify({"error": "The AI returned an empty clarification response."}), 500
 
-        # --- Return the clarification ---
-        # Convert basic markdown/latex from clarification to HTML before sending?
-        # Or let frontend handle it? Let's assume frontend MathJax handles LaTeX.
-        # We might want basic Markdown conversion here later if needed.
+       
         return jsonify({"clarification": clarification_text})
 
 
@@ -743,10 +736,10 @@ def refresher():
 
     print("refresher prompt : \n",refresher_prompt)
     
-    response = llm.invoke(refresher_prompt)
+    response = call_gemini(refresher_prompt)
     
         
-    concept_desc = response # This is the AI response object from llm.invoke
+    concept_desc = response.text # This is the AI response object from llm.invoke
     raw_ai_content = concept_desc.content.strip() # Get the raw text content and strip whitespace
 
     if not raw_ai_content:
