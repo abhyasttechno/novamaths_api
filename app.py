@@ -340,7 +340,7 @@ def solve_math():
             return jsonify({"error": "The AI returned an empty response. Please try rephrasing or check your input."}), 500
 
         # Return the solution
-        return jsonify({"solution": solution_text,"identifiedConcepts":response_concept.content})
+        return jsonify({"solution": solution_text,"identifiedConcepts":response_concept.text})
 
 
     except Exception as e:
