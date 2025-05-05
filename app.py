@@ -12,10 +12,7 @@ import traceback
 import tempfile
 import shutil
 from langchain_google_genai import ChatGoogleGenerativeAI
-from dotenv import load_dotenv
 
-# --- Configuration ---
-load_dotenv()
 logging.basicConfig(level=logging.INFO)
 
 app = Flask(__name__)
@@ -26,7 +23,18 @@ CORS(app, resources={r"/solve-math": {"origins": "*"}, r"/clarify-step": {"origi
 
 API_KEY = os.environ.get('GEMINI_API_KEY')
 
-client = genai.Client(api_key=API_KEY)
+client = None # Initialize as None
+
+if not API_KEY:
+    logging.error("GEMINI_API_KEY environment variable not set!")
+else:
+    try:
+        client = genai.Client(api_key=API_KEY)
+        # logging.info("Gemini API client initialized successfully.")
+    except Exception as e:
+        logging.error(f"Failed to configure Gemini API client: {e}")
+        client = None # Ensure client is None if initialization fails
+
 
 
 # --- Model Configuration ---
