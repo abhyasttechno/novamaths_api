@@ -25,7 +25,7 @@ CORS(app, resources={r"/solve-math": {"origins": "*"}, r"/clarify-step": {"origi
 # --- Hardcoding keys like this is insecure and should only be for quick local testing ---
 
 API_KEY = os.environ.get('GEMINI_API_KEY')
-os.environ['GOOGLE_API_KEY'] = API_KEY
+
 client = genai.Client(api_key=API_KEY)
 
 
