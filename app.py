@@ -740,7 +740,7 @@ def refresher():
     
         
     concept_desc = response.text # This is the AI response object from llm.invoke
-    raw_ai_content = concept_desc.text.strip() # Get the raw text content and strip whitespace
+    raw_ai_content = concept_desc.strip() # Get the raw text content and strip whitespace
 
     if not raw_ai_content:
         logging.error("Refresher AI returned empty content.")
