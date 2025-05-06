@@ -59,7 +59,7 @@ if firebase_app:
 
 
 app = Flask(__name__)
-CORS(app, resources={r"/solve-math": {"origins": "*"}, r"/clarify-step": {"origins": "*"},r"/practice": {"origins": "*"},r"/ama": {"origins": "*"},r"/check": {"origins": "*"},r"/refresher": {"origins": "*"}}) # Allow requests
+CORS(app, resources={r"/solve-math": {"origins": "*"}, r"/clarify-step": {"origins": "*"},r"/practice": {"origins": "*"},r"/ama": {"origins": "*"},r"/check": {"origins": "*"},r"/refresher": {"origins": "*"},r"/submit-feedback": {"origins": "*"}})
 
 # --- IMPORTANT: Use environment variables for API keys in production ---
 # --- Hardcoding keys like this is insecure and should only be for quick local testing ---
