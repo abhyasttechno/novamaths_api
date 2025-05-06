@@ -12,8 +12,51 @@ import traceback
 import tempfile
 import shutil
 from langchain_google_genai import ChatGoogleGenerativeAI
+# --- Firebase Initialization ---
+import firebase_admin
+from firebase_admin import credentials
+from firebase_admin import firestore
+
 
 logging.basicConfig(level=logging.INFO)
+
+firebase_app = None
+db = None
+
+# Option 1 (Recommended for Deployment): Load credentials from an environment variable
+firebase_credentials_json_string = os.environ.get('FIREBASE_CREDENTIALS_JSON')
+
+if firebase_credentials_json_string:
+    try:
+        # Parse the JSON string content from the environment variable
+        cred = credentials.Certificate(json.loads(firebase_credentials_json_string))
+        firebase_app = firebase_admin.initialize_app(cred)
+        print("Firebase initialized successfully from environment variable.")
+
+    except json.JSONDecodeError as e:
+        print(f"Firebase initialization error: Failed to parse FIREBASE_CREDENTIALS_JSON environment variable as JSON: {e}")
+        print("Ensure the FIREBASE_CREDENTIALS_JSON environment variable contains the exact JSON content of your service account key file.")
+        # The app will continue but without Firebase functionality
+    except Exception as e:
+        print(f"Unexpected error initializing Firebase from environment variable: {e}")
+         # Handle other potential errors during initialization
+        # The app will continue but without Firebase functionality
+
+
+else:
+    print(f"Firebase initialization skipped: Neither FIREBASE_CREDENTIALS_JSON environment variable nor local file '{local_credential_path}' found.")
+    print("Feedback submission will not work until Firebase is configured.")
+
+
+# Get Firestore client reference ONLY if the app was successfully initialized
+if firebase_app:
+    try:
+        db = firestore.client()
+        print("Firestore client obtained.")
+    except Exception as e:
+         print(f"Error obtaining Firestore client: {e}")
+         db = None # Ensure db is None if client creation failed
+
 
 app = Flask(__name__)
 CORS(app, resources={r"/solve-math": {"origins": "*"}, r"/clarify-step": {"origins": "*"},r"/practice": {"origins": "*"},r"/ama": {"origins": "*"},r"/check": {"origins": "*"},r"/refresher": {"origins": "*"}}) # Allow requests
@@ -800,6 +843,50 @@ def refresher():
         return jsonify({"error": f"An unexpected error occurred processing AI response: {type(e).__name__}"}), 500
 
     
+@app.route('/submit-feedback', methods=['POST'])
+def submit_feedback():
+    if db is None:
+        print("Database not initialized.")
+        return jsonify({"error": "Database service unavailable."}), 500 # Internal Server Error
+
+    try:
+        # Get data from the incoming JSON request
+        data = request.json
+        rating = data.get('rating')
+        email = data.get('email')
+        feedback = data.get('feedback')
+
+        # Basic Server-Side Validation
+        if rating is None or not isinstance(rating, int) or rating < 1 or rating > 5:
+            return jsonify({"error": "Invalid or missing rating."}), 400 # Bad Request
+        if email is None or not isinstance(email, str) or "@" not in email: # More robust email validation possible
+            return jsonify({"error": "Invalid or missing email address."}), 400 # Bad Request
+        # Feedback is optional, no validation needed beyond type check
+        if feedback is not None and not isinstance(feedback, str):
+             return jsonify({"error": "Invalid feedback format."}), 400
+
+
+        # Data structure to store in Firestore
+        feedback_entry = {
+            'rating': rating,
+            'email': email,
+            'feedback': feedback if feedback is not None else '', # Store as empty string if optional field is missing
+            'timestamp': datetime.datetime.utcnow() # Add a server-side timestamp
+        }
+
+        # Get a reference to the 'feedback' collection and add a new document
+        # Firestore automatically generates a unique ID for the document
+        doc_ref = db.collection('feedback').add(feedback_entry)
+
+        print(f"Feedback successfully written to Firestore. Document ID: {doc_ref[1].id}")
+
+        # Return a success response
+        return jsonify({"message": "Feedback submitted successfully!", "id": doc_ref[1].id}), 200 # OK
+
+    except Exception as e:
+        print(f"Error submitting feedback: {e}")
+        # Log the error properly in a real application
+        return jsonify({"error": "An error occurred while saving feedback."}), 500 # Internal Server 
 
 
 
