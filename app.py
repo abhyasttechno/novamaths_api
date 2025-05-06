@@ -52,7 +52,14 @@ def call_gemini(prompt):
         )
     return response
 
-
+def call_ama_gemini(prompt):
+    prompt_parts = [types.Part.from_text(text=prompt)]
+    response = client.models.generate_content(
+            model="gemini-2.0-flash-lite", 
+            contents=[types.Content(role="user", parts=prompt_parts)],
+            # stream=False # Default is False, explicitly set if needed
+        )
+    return response
 
 @app.route('/ama', methods=['POST'])
 def ama():
@@ -62,7 +69,7 @@ def ama():
         hist = f"""Here's the previous chat history: {history}"""
         instructional_text ="You are Ask Me Anything on Math Theories Assistant. Respond based on user question and for low context questions respond by analyzing previous chat history. Also in your response for giving focus to any specific word return those words with different font colors. In your responses dont mention extra things like Okay, 'I can answer your question' and dont mention 'Based on our previous conversation, you're asking about' respond by analyzing the context and behave as you are human assistant responding what you are asked for."
         instructional_text+=hist + "\n question : "+ question
-        response = call_gemini(instructional_text)
+        response = call_ama_gemini(instructional_text)
         
         
 
@@ -297,7 +304,7 @@ def solve_math():
         # For a single user turn, provide a list containing one Content object.
         # The 'parts' argument within Content takes the list of Part objects we built.
         response = client.models.generate_content(
-            model="gemini-1.5-flash", 
+            model="gemini-2.5-flash-preview-04-17", 
             contents=[types.Content(role="user", parts=prompt_parts)],
             # stream=False # Default is False, explicitly set if needed
         )
@@ -603,7 +610,7 @@ def clarify_step():
         # response = model.generate_content(prompt_parts)
 
         response = client.models.generate_content(
-            model="gemini-1.5-flash", 
+            model="gemini-2.5-flash-preview-04-17", 
             contents=[types.Content(role="user", parts=prompt_parts)],
             # stream=False # Default is False, explicitly set if needed
         )
@@ -640,7 +647,7 @@ def clarify_step():
 
 
 
-# --- NEW ENDPOINT for Step Clarification ---
+
 @app.route('/practice', methods=['POST'])
 def practice():
    
@@ -669,7 +676,7 @@ def practice():
         # response = model.generate_content(prompt_parts)
 
         response = client.models.generate_content(
-            model="gemini-1.5-flash", 
+            model="gemini-2.0-flash", 
             contents=[types.Content(role="user", parts=prompt_parts)]
             # stream=False # Default is False, explicitly set if needed
         )
