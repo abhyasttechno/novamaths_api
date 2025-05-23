@@ -2,7 +2,7 @@ import os
 import json
 import re
 import mimetypes
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify,render_template,redirect
 from flask_cors import CORS
 # Use google.generativeai instead of google.genai based on newer library versions
 from google import genai
@@ -42,11 +42,25 @@ if firebase_credentials_json_string:
          # Handle other potential errors during initialization
         # The app will continue but without Firebase functionality
 
-
 else:
-    print(f"Firebase initialization skipped: Neither FIREBASE_CREDENTIALS_JSON environment variable nor local file '{local_credential_path}' found.")
-    print("Feedback submission will not work until Firebase is configured.")
+    # Option 2 (Fallback for Local Development): Load credentials from a local file
+    # Make sure this file path is correct for your local environment
+    # IMPORTANT: Ensure this file is NOT committed to your public repository!
+    local_credential_path = 'nova-maths-feedback-firebase-adminsdk-fbsvc-9c15ee16fc.json'
+    if os.path.exists(local_credential_path):
+        try:
+            cred = credentials.Certificate(local_credential_path) # Pass the file path directly
+            firebase_app = firebase_admin.initialize_app(cred)
+            print(f"Firebase initialized successfully from local file: {local_credential_path}")
 
+        except Exception as e:
+            print(f"Error initializing Firebase from local file '{local_credential_path}': {e}")
+            print("Ensure the local credential file exists and is valid.")
+            # The app will continue but without Firebase functionality
+    else:
+        print(f"Firebase initialization skipped: Neither FIREBASE_CREDENTIALS_JSON environment variable nor local file '{local_credential_path}' found.")
+        print("Feedback submission will not work until Firebase is configured.")
+        # The app will start but Firebase is not initialized
 
 # Get Firestore client reference ONLY if the app was successfully initialized
 if firebase_app:
@@ -64,8 +78,9 @@ CORS(app, resources={r"/solve-math": {"origins": "*"}, r"/clarify-step": {"origi
 # --- IMPORTANT: Use environment variables for API keys in production ---
 # --- Hardcoding keys like this is insecure and should only be for quick local testing ---
 
-API_KEY = os.environ.get('GEMINI_API_KEY')
 
+
+API_KEY = os.environ['GOOGLE_API_KEY']
 client = None # Initialize as None
 
 if not API_KEY:
@@ -82,14 +97,14 @@ else:
 
 # --- Model Configuration ---
 # Choose a model appropriate for the task (multimodal if handling files)
-MODEL_NAME = "gemini-2.0-flash-exp-image-generation" # Changed to 1.5 flash - good balance
+MODEL_NAME = "gemini-2.5-flash-preview-04-17" # Changed to 1.5 flash - good balance
 CHAT_MODEL = "gemini-2.0-flash-lite"
 # Send a creative prompt to the LLM
 
 def call_gemini(prompt):
     prompt_parts = [types.Part.from_text(text=prompt)]
     response = client.models.generate_content(
-            model="gemini-1.5-flash", 
+            model="gemini-2.0-flash-lite", 
             contents=[types.Content(role="user", parts=prompt_parts)],
             # stream=False # Default is False, explicitly set if needed
         )
@@ -121,12 +136,12 @@ def ama():
 
 
 # --- Helper Function to Build Prompt Parts (REVISED) ---
+# --- Helper Function to Build Prompt Parts (REVISED) ---
 def build_math_prompt_parts(problem_text=None, uploaded_gemini_file=None):
     """
     Builds the list of 'Part' objects for the Gemini API math solver.
     Returns a list containing one text Part and optionally one file Part.
     """
-    # Combine all instructional text and user problem text into one string
     instructional_text = """You are MathMind AI, an expert AI Math Tutor.
 Your goal is to provide clear, accurate, and step-by-step solutions to math problems.
 Format the output using Markdown.
@@ -134,16 +149,44 @@ Use '### Step X:' for each step heading (e.g., '### Step 1:', '### Step 2:'). St
 Use '### Final Answer:' for the final result section.
 Use LaTeX notation enclosed in single dollar signs ($...$) for inline math and double dollar signs ($$...$$) for display math equations. This ensures compatibility with MathJax rendering on the web.
 Explain the reasoning behind each step clearly and concisely.
+
+NEW DIAGRAM INSTRUCTIONS:
+If a step requires a diagram for clear explanation (e.g., geometry, graphs, vectors):
+1.  First, describe the diagram in text as part of the step's explanation.
+2.  Then, IMMEDIATELY AFTER the textual description of the diagram within the same step, embed the diagram data using a special tag:
+    
+    <DIAGRAM_SVG_DATA>
+    {
+      "viewBox": "0 0 200 150", // Example: min-x, min-y, width, height for coordinate system
+      "elements": [
+        // For a line:
+        { "type": "line", "x1": 10, "y1": 10, "x2": 100, "y2": 100, "stroke": "black", "strokeWidth": 2 },
+        // For a circle:
+        { "type": "circle", "cx": 50, "cy": 50, "r": 20, "stroke": "blue", "fill": "lightblue" },
+        // For text/label:
+        { "type": "text", "x": 10, "y": 25, "text": "Point A", "fill": "red", "fontSize": "10px" },
+        // For a rectangle:
+        { "type": "rect", "x": 10, "y": 10, "width": 50, "height": 30, "stroke": "green", "fill": "lightgreen" },
+        // For a path (more complex shapes):
+        { "type": "path", "d": "M10 80 Q 52.5 10, 95 80 T 180 80", "stroke": "purple", "fill": "none" }
+        // Add other elements as needed (e.g., polygons, ellipses)
+      ]
+    }
+    </DIAGRAM_SVG_DATA>
+3.  Ensure the JSON inside <DIAGRAM_SVG_DATA> is valid. Use simple coordinates. The viewBox defines the drawing area; keep coordinates within this box.
+4.  Do NOT generate actual <svg>...</svg> tags. Only provide the data within <DIAGRAM_SVG_DATA>.
+5.  Continue with the rest of the step's explanation after the </DIAGRAM_SVG_DATA> tag if necessary.
+
 If the input (text or file) is ambiguous, unclear, or not a math problem, state that politely and ask for clarification instead of guessing or providing an irrelevant solution.
 If a file is provided, analyze the content of the file (image or PDF) to identify the math problem.
 
 ---
 Problem Details:
 """
-
-    # Add user's text input to the combined string
+    # ... (rest of the function remains the same)
     if problem_text and not uploaded_gemini_file:
         instructional_text += f"\nText Input: {problem_text}"
+    # ... and so on for file input and the closing part of the prompt.
     else:
         instructional_text += "\nText Input: None provided."
 
@@ -176,7 +219,6 @@ Problem Details:
             parts.append(types.Part.from_text("(Error: Could not properly attach file content for analysis due to an internal issue.)"))
 
     return parts
-
 # --- Helper Function to Build Prompt Parts (REVISED) ---
 def build_check_prompt_parts(problem_text=None, uploaded_gemini_file=None):
     """
@@ -187,13 +229,24 @@ def build_check_prompt_parts(problem_text=None, uploaded_gemini_file=None):
     instructional_text = f"""You are MathMind AI, an expert AI Math Tutor.
 Your goal is to Carefully examine the uploaded math practice problem and its solution provided by the user.
 
+Provide your feedback using Markdown formatting for clarity. This includes:
+- Using `### Main Point` or `#### Sub-point` for distinct sections or observations.
+- Using blank lines between paragraphs for better readability.
+- Using bullet points (`* item` or `- item`) or numbered lists (`1. item`) for lists of observations or suggestions.
+- Using **bold** text to highlight key terms or observations (like "**Observation 1:**", "**Mistake:**", "**Correct Approach:**").
+- Using *italic* text for emphasis.
+- Using LaTeX ($...$ or $$...$$) for any mathematical expressions or formulas in your feedback.
+
 1. First check whether the values mentioned in the solution is matching with the values mentioned in practice problem statement. 
    If not point this out.
 2. Next, find out whether the underlying concept is well understood by the user, or applying wrong logic/ concept to the practice problem.
 
 3. Verify each step thoroughly for correctness, logic, and mathematical accuracy.
 
-2. If there are any mistakes, clearly point them out and explain why they are incorrect. Suggest the correct approach or correction where necessary.
+2. If there are any mistakes
+   - Clearly point them out (e.g., "**Mistake in Step 2:** Calculation error...").
+    - Explain *why* they are incorrect.
+    - Suggest the correct approach or provide the correction where necessary.
 
 3. Be polite and constructive — encourage the user to improve and keep practicing.
 
@@ -607,7 +660,14 @@ User's Question: "{user_question}"
 Provide a clear and detailed explanation addressing the user's question about Step {step_number}.
 Focus *only* on clarifying that specific step in the context of the overall solution.
 Do not re-solve the entire problem. Use Markdown and LaTeX ($...$ or $$...$$) for formatting as needed.
+Use Markdown for formatting:
+- Use `### Heading Name` for main section titles and `#### Subheading Name` for subsections within your clarification.
+- Use blank lines between paragraphs.
+- Use standard Markdown for bulleted lists (`* item` or `- item`) and numbered lists (`1. item`).
+- Use Markdown for **bold** and *italic* text where appropriate.
+- Use LaTeX ($...$ or $$...$$) for mathematical expressions.
 Explain the reasoning, definitions, or formulas relevant to that particular step and the user's query.
+Make the explanation easy to read and understand.
 """
     # Add the text part first
     parts = [types.Part.from_text(text=prompt)]
@@ -653,7 +713,7 @@ def clarify_step():
         # response = model.generate_content(prompt_parts)
 
         response = client.models.generate_content(
-            model="gemini-2.5-flash-preview-04-17", 
+            model=MODEL_NAME, 
             contents=[types.Content(role="user", parts=prompt_parts)],
             # stream=False # Default is False, explicitly set if needed
         )
@@ -888,6 +948,12 @@ def submit_feedback():
         # Log the error properly in a real application
         return jsonify({"error": "An error occurred while saving feedback."}), 500 # Internal Server 
 
+
+@app.route('/')
+def index():
+    # You could pass data to the template here if needed
+    # For this example, we just render the static template
+    return render_template('dashboard.html')
 
 
 # --- Run the Flask App ---
