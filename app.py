@@ -80,7 +80,7 @@ CORS(app, resources={r"/solve-math": {"origins": "*"}, r"/clarify-step": {"origi
 
 
 
-API_KEY = os.environ['GOOGLE_API_KEY']
+API_KEY = os.environ['GEMINI_API_KEY']
 client = None # Initialize as None
 
 if not API_KEY:
