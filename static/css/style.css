@@ -1,0 +1,1227 @@
+        /* EMBEDDED CONTENT OF style-p.css */
+        /* novamaths-style.css */
+
+        /*--------------------------------------------------------------
+        # General Styles & Variables
+        --------------------------------------------------------------*/
+        :root {
+            --nm-primary-blue: #2D8CFF;
+            --nm-secondary-yellow: #FFD166;
+            --nm-neutral-light: #F8F9FA;
+            --nm-neutral-mid: #E9ECEF;
+            --nm-text-dark: #343A40;
+            --nm-text-light: #6C757D;
+            --nm-success-green: #28A745;
+            --nm-warning-orange: #FF9F43;
+            --nm-error-red: #EA5455;
+            --nm-font-heading: 'Nunito Sans', sans-serif;
+            --nm-font-body: 'Open Sans', sans-serif;
+            --nm-border-radius: 0.5rem;
+            /* Consistent border radius */
+            --nm-box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        }
+
+        body {
+            font-family: var(--nm-font-body);
+            color: var(--nm-text-dark);
+            background-color: var(--nm-neutral-light);
+            /* Lighter page background */
+            line-height: 1.6;
+            overflow-x: hidden;
+            /* Prevent horizontal scroll issues from original index.html */
+        }
+
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6 {
+            font-family: var(--nm-font-heading);
+            font-weight: 600;
+            color: var(--nm-text-dark);
+            /* dashboard.html uses --nm-text-dark for headings */
+        }
+
+        .nm-container {
+            /* Custom container for consistent padding if needed */
+            max-width: 1200px;
+            margin-left: auto;
+            margin-right: auto;
+            padding-left: 15px;
+            padding-right: 15px;
+        }
+
+        /* Specific styles for solution display radio buttons (from dashboard.html) */
+        .solution-mode-selector {
+            font-size: 0.9rem;
+            color: var(--nm-text-light);
+            /* Added from index.html structure for these radios */
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            border-bottom: 1px solid var(--nm-neutral-mid);
+            /* Match original index.html separator */
+            padding-bottom: 1rem;
+            /* Match original index.html spacing */
+            margin-bottom: 1rem;
+            /* Match original index.html spacing */
+        }
+
+        .solution-mode-selector .form-check-input:checked {
+            background-color: var(--nm-primary-blue);
+            border-color: var(--nm-primary-blue);
+        }
+
+        .solution-mode-selector strong {
+            /* From index.html */
+            margin-right: 1.5rem;
+            margin-bottom: 0.5rem;
+            /* For mobile */
+        }
+
+
+        /* Specific styles for step-by-step controls (from dashboard.html) */
+        #stepByStepControls button {
+            padding: 0.5rem 1.5rem;
+        }
+
+        /*--------------------------------------------------------------
+        # Navbar (from dashboard.html)
+        --------------------------------------------------------------*/
+        .navbar {
+            /* From index.html, for transition if needed, though dashboard specific styling will override */
+            transition: background-color 0.3s ease-in-out;
+        }
+
+        .navbar-brand {
+            font-family: var(--nm-font-heading);
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: var(--nm-primary-blue) !important;
+        }
+
+        .navbar-nav .nav-link {
+            font-weight: 500;
+            color: var(--nm-text-light);
+            /* dashboard.html color */
+        }
+
+        .navbar-nav .nav-link.active,
+        .navbar-nav .nav-link:hover {
+            color: var(--nm-primary-blue);
+        }
+
+        /* Style for the "Login / School Portal" button from index.html, adapted to dashboard look */
+        .navbar .btn-outline-primary {
+            border-radius: var(--nm-border-radius);
+            /* dashboard.html consistency */
+            padding: 0.4rem 1rem;
+            font-weight: 500;
+            border-color: var(--nm-primary-blue);
+            color: var(--nm-primary-blue);
+        }
+
+        .navbar .btn-outline-primary:hover {
+            background-color: var(--nm-primary-blue);
+            color: white;
+        }
+
+
+        /*--------------------------------------------------------------
+        # Hero Section (from dashboard.html)
+        --------------------------------------------------------------*/
+        .hero-section {
+            padding: 60px 0;
+            text-align: center;
+            background: linear-gradient(135deg, #e0f7ff 0%, var(--nm-neutral-light) 100%);
+            /* Soft gradient */
+        }
+
+        .hero-section h1 {
+            font-size: 2.8rem;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+            color: var(--nm-text-dark);
+        }
+
+        .hero-section .lead {
+            font-size: 1.25rem;
+            color: var(--nm-text-light);
+            margin-bottom: 1.5rem;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .btn-hero {
+            background-color: var(--nm-primary-blue);
+            color: white;
+            padding: 0.75rem 2rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: var(--nm-border-radius);
+            transition: background-color 0.3s ease;
+        }
+
+        .btn-hero:hover {
+            background-color: #1a75e0;
+            /* Darker primary blue */
+        }
+
+        /*--------------------------------------------------------------
+        # Main Content Sections & Cards (from dashboard.html)
+        --------------------------------------------------------------*/
+        .section-title {
+            text-align: center;
+            margin-bottom: 2rem;
+            font-size: 2rem;
+            font-weight: 700;
+        }
+
+        .nm-card {
+            background-color: #fff;
+            border: 1px solid var(--nm-neutral-mid);
+            border-radius: var(--nm-border-radius);
+            box-shadow: var(--nm-box-shadow);
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            /* Default padding for cards */
+        }
+
+        .nm-card .card-header {
+            /* This applies to headers inside nm-card */
+            background-color: transparent;
+            border-bottom: 1px solid var(--nm-neutral-mid);
+            padding: 1rem 1.5rem;
+            margin: -1.5rem -1.5rem 1.5rem -1.5rem;
+            /* Adjust to fit padding */
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        /* Card body adjustments from index.html if nm-card is used for unified input */
+        .nm-card>.card-body.p-0 {
+            /* For the solver input card */
+            padding: 0 !important;
+        }
+
+
+        /*--------------------------------------------------------------
+        # Problem Input Area (Styles from dashboard.html, HTML from index.html)
+        --------------------------------------------------------------*/
+        .problem-input-section {
+            margin-top: 2rem;
+            /* Add some top margin */
+        }
+
+        /* .unified-input-bar styling from index.html adapted to dashboard.html variables */
+        .unified-input-bar {
+            background-color: #fff;
+            /* dashboard.html background for input area */
+            border: 1px solid var(--nm-neutral-mid);
+            /* dashboard.html border */
+            box-shadow: var(--nm-box-shadow);
+            /* dashboard.html shadow */
+            padding: 0.5rem 1rem;
+            /* dashboard.html padding */
+            display: flex;
+            align-items: center;
+            border-radius: var(--nm-border-radius);
+            /* dashboard.html radius */
+        }
+
+        .unified-input-bar textarea {
+            background-color: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+            outline: none !important;
+            resize: none;
+            overflow-y: hidden;
+            line-height: 1.6;
+            padding: 0.5rem;
+            /* Match dashboard.html textarea padding */
+            font-size: 1rem;
+            flex-grow: 1;
+            margin: 0 0.5rem;
+            /* Spacing around textarea */
+        }
+
+        .unified-input-bar .btn-icon {
+            background-color: transparent;
+            border: none;
+            color: var(--nm-text-light);
+            /* dashboard.html icon color */
+            padding: 0.5rem;
+            width: 40px;
+            /* Fixed size from index.html for consistency */
+            height: 40px;
+            /* Fixed size */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: color 0.2s ease, background-color 0.2s ease;
+            flex-shrink: 0;
+            border-radius: 50%;
+            /* Round buttons */
+        }
+
+        .unified-input-bar .btn-icon:hover {
+            color: var(--nm-primary-blue);
+            /* dashboard.html hover color */
+            background-color: var(--nm-neutral-light);
+            /* dashboard.html hover bg */
+        }
+
+        /* Send Button / Solve Button (#solveUnifiedButton from index.html) */
+        #solveUnifiedButton {
+            background: var(--nm-primary-blue);
+            /* dashboard.html primary */
+            color: white;
+            border: none;
+            border-radius: var(--nm-border-radius);
+            /* dashboard.html radius for non-icon button */
+            width: auto;
+            /* Allow it to size with content or spinner */
+            min-width: 40px;
+            /* Minimum width like icon buttons */
+            height: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-left: 0.5rem;
+            padding: 0 0.75rem;
+            /* Padding for text/icon */
+            transition: background-color 0.2s ease, opacity 0.2s ease;
+            flex-shrink: 0;
+        }
+
+        #solveUnifiedButton:hover {
+            background-color: #1a75e0;
+            /* Darker primary */
+        }
+
+        #solveUnifiedButton:disabled {
+            opacity: 0.65;
+            cursor: not-allowed;
+            background-color: var(--nm-text-light);
+        }
+
+        /* Spinner inside solve button (from index.html, ensure it works with dashboard button style) */
+        #solveUnifiedButton .loading-spinner {
+            /* display: none; JS handles this */
+            width: 1.25rem;
+            /* Adjust size if needed */
+            height: 1.25rem;
+        }
+
+        /* Voice recording button style from index.html */
+        #startSpeechButton.recording {
+            color: white;
+            background-color: var(--nm-error-red);
+            /* dashboard.html error red */
+        }
+
+        #startSpeechButton.recording:hover {
+            background-color: #c82333;
+            /* Darker red */
+        }
+
+        #selectedFileInfo {
+            font-size: 0.875rem;
+            margin-top: 0.5rem;
+            padding-left: 1rem;
+            /* Align with input bar content */
+            color: var(--nm-text-light);
+        }
+
+        #selectedFileInfo .clear-file {
+            text-decoration: none;
+            color: var(--nm-error-red);
+        }
+
+
+        /*--------------------------------------------------------------
+        # Solution Display (Adapting index.html's structure to dashboard.html's card style)
+        --------------------------------------------------------------*/
+        #solution-display-card .card-body {
+            padding: 1.5rem;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        /* Original Question display block from dashboard.html */
+        .original-question-display {
+            margin-bottom: 1.5rem;
+            padding: 1rem 1.5rem;
+            border: 1px solid var(--nm-neutral-mid);
+            border-radius: var(--nm-border-radius);
+            background-color: var(--nm-neutral-light);
+        }
+
+        .original-question-display h5 {
+            color: var(--nm-text-dark);
+            font-size: 1.1rem;
+            margin-bottom: 0.75rem;
+            font-weight: 600;
+        }
+
+        /* Text content styling (from dashboard.html, applying to index.html's dynamic content) */
+        #solution-display-card .original-question-display div,
+        #solution-display-card .step-content,
+        /* Targets class from index.html JS */
+        #solution-display-card .final-answer-content {
+            /* Targets class from index.html JS */
+            font-family: var(--nm-font-body);
+            line-height: 1.7;
+            color: var(--nm-text-dark);
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            overflow: visible;
+            overflow-x: hidden;
+            overflow-y: hidden;
+        }
+
+        /* Styling for .step and .final-answer from index.html's JS to match dashboard.html's carded steps */
+        #solutionOutput .step {
+            /* This is the dynamically created div from index.html JS */
+            border: 1px solid var(--nm-neutral-mid);
+            border-radius: var(--nm-border-radius);
+            margin-bottom: 1rem;
+            padding: 1rem 1.5rem;
+            background-color: #fff;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            transition: box-shadow 0.3s ease;
+            cursor: pointer;
+            /* Kept from index.html for clarification */
+        }
+
+        #solutionOutput .step:hover {
+            /* interactive-step hover from index.html */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            /* transform: translateY(-2px); from index.html, optional */
+        }
+
+        #solutionOutput .step h5 {
+            /* Step X: inside .step */
+            color: var(--nm-primary-blue);
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+            /* Match dashboard.html card header */
+            padding-left: 0;
+            border-bottom: 1px solid var(--nm-neutral-light);
+            padding-bottom: 0.5rem;
+        }
+
+        #solutionOutput .final-answer {
+            /* This is the dynamically created div from index.html JS */
+            background-color: #e6ffed;
+            /* Light green from dashboard.html */
+            border: 1px solid #b8f5c9;
+            /* Matching border */
+            padding: 1rem 1.5rem;
+            border-radius: var(--nm-border-radius);
+            margin-top: 1.5rem;
+            /* Spacing from index.html */
+        }
+
+        #solutionOutput .final-answer strong {
+            /* "Final Answer:" text */
+            color: var(--nm-success-green);
+            font-weight: 700;
+            /* dashboard.html style */
+            display: block;
+            /* Ensure it's on its own line before content */
+            margin-bottom: 0.5rem;
+        }
+
+        #solutionOutput .step-content,
+        #solutionOutput .final-answer-content {
+            white-space: pre-wrap;
+            /* MODIFIED: Was 'normal'. This preserves newlines and spaces from AI output. */
+            font-family: var(--nm-font-body);
+            /* dashboard.html font */
+            line-height: 1.7;
+            color: var(--nm-text-dark);
+            margin-top: 0.5rem;
+            /* Space below step title/final answer label */
+        }
+
+        /* Solution Output Badge "AI Solution" from index.html */
+
+        #copySolutionButton {
+            /* Style from index.html, make it fit dashboard theme */
+            border-radius: var(--nm-border-radius);
+            font-size: 0.875rem;
+        }
+
+
+        /* Pre-emptive Scaffolding (from dashboard.html styles) */
+        #preemptiveScaffolding {
+            border-left: 4px solid var(--nm-warning-orange);
+            background-color: #fff8e1;
+            /* Light yellow */
+            color: #54431a;
+            /* Darker text for readability */
+            padding: 1rem 1.5rem;
+            border-radius: var(--nm-border-radius);
+        }
+
+        #preemptiveScaffolding strong {
+            color: #c08000;
+            /* Stronger orange */
+            font-weight: 700;
+        }
+
+        #preemptiveScaffolding ul {
+            margin-bottom: 0;
+            padding-left: 1.25rem;
+            /* Indent list items */
+        }
+
+        /* Styles for uploaded question image card from index.html */
+        #uploadedQuestionImagePreviewArea .card {
+            /* Adapting index.html's card to nm-card */
+            background-color: #fff;
+            border: 1px solid var(--nm-neutral-mid);
+            border-radius: var(--nm-border-radius);
+            box-shadow: var(--nm-box-shadow);
+            /* padding: 1.5rem; /* Default padding for cards - might not be needed if card-body handles it */
+        }
+
+        #uploadedQuestionImagePreviewArea .card-header {
+            background-color: transparent;
+            border-bottom: 1px solid var(--nm-neutral-mid);
+            padding: 1rem 1.5rem;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        #uploadedQuestionImagePreviewArea .card-body {
+            padding: 1rem;
+            /* Padding for the image */
+        }
+
+        #questionImageElement {
+            max-height: 300px;
+            border: 1px solid var(--nm-neutral-mid);
+            border-radius: .25rem;
+        }
+
+
+        /*--------------------------------------------------------------
+        # MathJax & Diagrams
+        --------------------------------------------------------------*/
+        mjx-container {
+            line-height: normal !important;
+            vertical-align: middle;
+            word-wrap: normal;
+            overflow-wrap: normal;
+            display: inline-block !important;
+            overflow: visible;
+            overflow-x: visible;
+            overflow-y: visible;
+        }
+
+        mjx-container[display="true"] {
+            display: block !important;
+            margin: 1em 0;
+            max-width: 100% !important;
+            overflow-x: auto;
+            overflow-y: hidden;
+        }
+
+        MJX_Assistive_MathML {
+            display: none !important;
+        }
+
+        /* SVG Diagram container styles from index.html (IMPORTANT FOR FUNCTIONALITY) */
+        .solution-diagram-container {
+            width: 100%;
+            margin: 15px 0;
+            padding: 0;
+            overflow: hidden;
+            /* Important for SVG */
+            border: 1px solid var(--nm-neutral-mid);
+            /* dashboard.html border */
+            border-radius: var(--nm-border-radius);
+            /* dashboard.html radius */
+            background-color: #fdfdfd;
+            display: flex;
+            /* Center SVG if it's smaller than container */
+            justify-content: center;
+            align-items: center;
+        }
+
+        .solution-diagram-container svg {
+            display: block;
+            width: 100%;
+            height: auto;
+            max-height: 400px;
+            /* From index.html */
+        }
+
+
+        /*--------------------------------------------------------------
+        # Identified Concepts & Practice Problems (dashboard.html styles)
+        --------------------------------------------------------------*/
+        .btn-quick-refresher,
+        .btn-generate-practice {
+            background-color: var(--nm-primary-blue);
+            color: white;
+            border-color: var(--nm-primary-blue);
+            border-radius: var(--nm-border-radius);
+            /* Consistent radius */
+            padding: 0.5rem 1rem;
+            /* Consistent padding */
+        }
+
+        .btn-quick-refresher:hover,
+        .btn-generate-practice:hover {
+            background-color: #1a75e0;
+            /* Darker blue */
+        }
+
+        /* Styling for .practice-problem from index.html's JS to match dashboard.html's item style */
+        #practice-problems-output .practice-problem {
+            /* class from index.html JS */
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--nm-neutral-mid);
+            border-radius: var(--nm-border-radius);
+            margin-bottom: 0.5rem;
+            cursor: pointer;
+            transition: background-color 0.2s ease, border-color 0.2s ease;
+            background-color: #fff;
+            /* Ensure white background */
+        }
+
+        #practice-problems-output .practice-problem:hover {
+            /* interactive-practice hover from index.html */
+            background-color: var(--nm-neutral-light);
+            border-color: var(--nm-primary-blue);
+        }
+
+        #practice-problems-output .problem-number {
+            /* From index.html */
+            font-weight: bold;
+            color: var(--nm-primary-blue);
+            /* dashboard.html primary color */
+            margin-right: 0.5em;
+        }
+
+        /* Practice controls from index.html, adapted */
+        #practice-controls {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            /* Spacing */
+            background-color: var(--nm-neutral-light);
+            /* dashboard.html light bg */
+            padding: 1rem;
+            border-radius: var(--nm-border-radius);
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        #practice-controls label {
+            font-weight: 600;
+            color: var(--nm-text-dark);
+        }
+
+        #practiceProblemSlider {
+            flex-grow: 1;
+            max-width: 300px;
+            cursor: pointer;
+        }
+
+        #practiceProblemCount {
+            font-weight: 700;
+            min-width: 25px;
+            text-align: right;
+            color: var(--nm-text-dark);
+            background-color: var(--nm-neutral-mid);
+            /* Badge like bg */
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+        }
+
+        #generatePracticeButton .loading-spinner {
+            display: none;
+        }
+
+        /* JS handles */
+        #practice-loading {
+            text-align: center;
+            padding: 20px;
+            color: var(--nm-text-light);
+        }
+
+        #practice-loading .spinner-border {
+            color: var(--nm-primary-blue) !important;
+        }
+
+
+        /*--------------------------------------------------------------
+        # Features & Concepts Library (from index.html, styled with nm-card)
+        --------------------------------------------------------------*/
+        /* General accordion styling to match dashboard.html theme */
+        .accordion-button {
+            font-weight: 600;
+            color: var(--nm-text-dark);
+            background-color: #fff;
+            /* Card background */
+        }
+
+        .accordion-button:not(.collapsed) {
+            color: var(--nm-primary-blue);
+            background-color: var(--nm-neutral-light);
+            /* Light blue when open */
+            box-shadow: inset 0 -1px 0 rgba(0, 0, 0, .1);
+        }
+
+        .accordion-button:focus {
+            box-shadow: 0 0 0 0.25rem rgba(45, 140, 255, 0.25);
+            /* --nm-primary-blue focus */
+            border-color: var(--nm-primary-blue);
+        }
+
+        .accordion-body {
+            line-height: 1.7;
+            color: var(--nm-text-dark);
+            background-color: #fff;
+            /* Ensure body matches card */
+        }
+
+        .accordion-item {
+            background-color: #fff;
+            border: 1px solid var(--nm-neutral-mid);
+        }
+
+        .accordion-item:first-of-type {
+            border-top-left-radius: var(--nm-border-radius);
+            border-top-right-radius: var(--nm-border-radius);
+        }
+
+        .accordion-item:last-of-type {
+            border-bottom-left-radius: var(--nm-border-radius);
+            border-bottom-right-radius: var(--nm-border-radius);
+        }
+
+        .feature-icon {
+            /* From index.html */
+            font-size: 1.5rem;
+            /* dashboard.html consistent icon size */
+            margin-right: 1rem;
+            vertical-align: middle;
+            color: var(--nm-primary-blue);
+        }
+
+        /* Concepts Library Tabs from index.html */
+        #concepts-library .nav-tabs {
+            border-bottom: 2px solid var(--nm-primary-blue);
+            margin-bottom: 1.5rem;
+        }
+
+        #concepts-library .nav-link {
+            border: none;
+            border-bottom: 3px solid transparent;
+            color: var(--nm-text-light);
+            font-weight: 600;
+            margin-right: 1rem;
+            padding: 0.5rem 1rem;
+            /* Adjust padding */
+        }
+
+        #concepts-library .nav-link:hover {
+            border-color: var(--nm-neutral-mid);
+            color: var(--nm-text-dark);
+        }
+
+        #concepts-library .nav-link.active {
+            color: var(--nm-primary-blue);
+            border-color: var(--nm-primary-blue);
+            background-color: transparent;
+        }
+
+
+        /*--------------------------------------------------------------
+        # Professor Owl (dashboard.html styles)
+        --------------------------------------------------------------*/
+        #ama-chatbot-section .nm-card .card-body {
+            /* Target card body for ama specifically */
+            padding: 0;
+            /* Remove card padding for chat window */
+        }
+
+        #chat-window {
+            height: 350px;
+            overflow-y: auto;
+            padding: 1rem;
+            border: 1px solid var(--nm-neutral-mid);
+            border-radius: var(--nm-border-radius) var(--nm-border-radius) 0 0;
+            /* Round top corners */
+            background-color: #fff;
+            /* Ensure white background for chat */
+        }
+
+        /* User and Bot messages from index.html, adapted to dashboard.html variables */
+        #chat-window .user-message {
+            display: flex;
+            justify-content: flex-end;
+            margin: 10px 0;
+        }
+
+        #chat-window .user-message>div {
+            background: var(--nm-primary-blue);
+            color: white;
+            padding: 0.75rem 1rem;
+            /* dashboard.html padding */
+            border-radius: var(--nm-border-radius) var(--nm-border-radius) 0 var(--nm-border-radius);
+            /* dashboard.html style */
+            max-width: 80%;
+            word-wrap: break-word;
+            box-shadow: var(--nm-box-shadow);
+        }
+
+        #chat-window .bot-message {
+            display: flex;
+            align-items: flex-start;
+            margin: 10px 0;
+        }
+
+        #chat-window .bot-message img {
+            width: 35px;
+            height: 35px;
+            margin-right: 0.75rem;
+            /* dashboard.html spacing */
+            flex-shrink: 0;
+            border-radius: 50%;
+            background-color: #fff;
+            padding: 2px;
+            border: 1px solid var(--nm-neutral-mid);
+        }
+
+        #chat-window .bot-message>div {
+            background: var(--nm-neutral-light);
+            /* dashboard.html bg */
+            color: var(--nm-text-dark);
+            padding: 0.75rem 1rem;
+            border-radius: var(--nm-border-radius) var(--nm-border-radius) var(--nm-border-radius) 0;
+            max-width: 80%;
+            word-wrap: break-word;
+            box-shadow: var(--nm-box-shadow);
+        }
+
+        #chat-window .bot-message b {
+            color: var(--nm-primary-blue);
+        }
+
+        /* Professor Owl name */
+
+        /* Typing indicator from index.html */
+        #typing {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+            font-style: italic;
+            color: var(--nm-text-light);
+        }
+
+        #typing img {
+            width: 35px;
+            height: 35px;
+            margin-right: 0.75rem;
+            flex-shrink: 0;
+        }
+
+        #typing div {
+            background: var(--nm-neutral-light);
+            padding: 0.75rem 1rem;
+            border-radius: var(--nm-border-radius) var(--nm-border-radius) var(--nm-border-radius) 0;
+            max-width: 75%;
+            box-shadow: var(--nm-box-shadow);
+        }
+
+        #dots {
+            display: inline-block;
+        }
+
+        /* AMA Input group from index.html structure, dashboard.html style */
+        #ama-input-group {
+            /* This is the input-group div from dashboard.html */
+            border-top: 1px solid var(--nm-neutral-mid);
+            border-radius: 0 0 var(--nm-border-radius) var(--nm-border-radius);
+        }
+
+        #ama-input {
+            /* From index.html JS target */
+            border-radius: 0 0 0 var(--nm-border-radius);
+            border-right: none;
+            box-shadow: none !important;
+            padding: 0.75rem 1rem;
+            /* dashboard.html input padding */
+            font-size: 1rem;
+            border-color: var(--nm-neutral-mid);
+            /* Ensure border is visible */
+        }
+
+        #ama-input:focus {
+            border-color: var(--nm-primary-blue);
+            /* dashboard.html focus */
+            box-shadow: 0 0 0 0.25rem rgba(45, 140, 255, 0.25) !important;
+        }
+
+        /* Send button for AMA, ID 'send-button' from index.html JS */
+        #send-button {
+            /* ID from index.html's JS */
+            background-color: var(--nm-primary-blue);
+            border-color: var(--nm-primary-blue);
+            color: white;
+            border-radius: 0 0 var(--nm-border-radius) 0;
+            padding: 0.75rem 1.25rem;
+            /* dashboard.html padding */
+        }
+
+        #send-button:hover {
+            background-color: #1a75e0;
+            /* Darker blue */
+        }
+
+        #send-button:disabled {
+            opacity: 0.65;
+            background-color: var(--nm-text-light);
+        }
+
+        #send-button .loading-spinner {
+            display: none;
+        }
+
+        /* JS handles */
+
+        /* Sample Question Styling for Professor Owl (from dashboard.html) */
+        .sample-question-container {
+            text-align: center;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: var(--nm-border-radius);
+        }
+
+        .sample-question-container h4 {
+            color: var(--nm-primary-blue);
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        .sample-question-container .text-muted {
+            margin-bottom: 1.5rem;
+        }
+
+        .sample-question-chips {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .sample-question-chip {
+            background-color: var(--nm-neutral-light);
+            color: var(--nm-primary-blue);
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--nm-primary-blue);
+            border-radius: 20px;
+            cursor: pointer;
+            transition: background-color 0.2s ease, color 0.2s ease;
+            font-size: 0.9rem;
+        }
+
+        .sample-question-chip:hover {
+            background-color: var(--nm-primary-blue);
+            color: white;
+        }
+
+
+        /*--------------------------------------------------------------
+        # Feedback Section (dashboard.html styles)
+        --------------------------------------------------------------*/
+        #feedback-section .nm-card {
+            padding: 2rem;
+        }
+
+        .rating {
+            display: flex;
+            flex-direction: row-reverse;
+            justify-content: center;
+        }
+
+        .rating input[type="radio"] {
+            display: none;
+        }
+
+        .rating label {
+            color: #ccc;
+            cursor: pointer;
+            font-size: 2.5rem;
+            transition: color 0.2s;
+            margin: 0 0.2rem;
+        }
+
+        /* Updated: Using Bootstrap Icons within labels, so style the <i> tag */
+        .rating input[type="radio"]:checked~label i,
+        .rating label:hover i,
+        .rating label:hover~label i {
+            color: var(--nm-secondary-yellow);
+        }
+
+        .rating label i {
+            /* Default color for star icons */
+            color: #ccc;
+            transition: color 0.2s;
+        }
+
+        #feedbackForm.was-validated .rating:has(input[type="radio"]:invalid:not(:checked))+#ratingError {
+            display: block !important;
+        }
+
+        #ratingError {
+            color: var(--nm-error-red);
+            font-size: 0.875em;
+            margin-top: 0.25rem;
+            display: none;
+            /* Hidden by default */
+        }
+
+        #submitFeedbackButton {
+            /* ID from index.html JS */
+            background-color: var(--nm-primary-blue);
+            border-color: var(--nm-primary-blue);
+            color: white;
+            padding: 0.75rem;
+            font-size: 1.1rem;
+            /* Larger text */
+        }
+
+        #submitFeedbackButton:hover {
+            background-color: #1a75e0;
+        }
+
+        #submitFeedbackButton .loading-spinner {
+            display: none;
+        }
+
+
+        /*--------------------------------------------------------------
+        # Footer (dashboard.html styles)
+        --------------------------------------------------------------*/
+        .footer {
+            background-color: var(--nm-text-dark);
+            color: rgba(255, 255, 255, 0.7);
+            padding: 40px 0 20px;
+            margin-top: 3rem;
+        }
+
+        .footer h5 {
+            color: #fff;
+            margin-bottom: 1rem;
+        }
+
+        .footer p,
+        .footer ul li a {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.9rem;
+        }
+
+        .footer ul {
+            padding-left: 0;
+            list-style: none;
+        }
+
+        .footer ul li {
+            margin-bottom: 0.5rem;
+        }
+
+        .footer ul li a:hover {
+            color: #fff;
+            text-decoration: none;
+        }
+
+        .footer hr {
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .footer .small {
+            font-size: 0.8rem;
+        }
+
+        /*--------------------------------------------------------------
+        # Modals (dashboard.html styles)
+        --------------------------------------------------------------*/
+        .modal-content {
+            border-radius: var(--nm-border-radius);
+            border: none;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        }
+
+        .modal-header {
+            background-color: var(--nm-neutral-light);
+            border-bottom: 1px solid var(--nm-neutral-mid);
+            padding: 1rem 1.5rem;
+        }
+
+        .modal-header .modal-title {
+            font-weight: 600;
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+        }
+
+        .modal-footer {
+            background-color: var(--nm-neutral-light);
+            border-top: 1px solid var(--nm-neutral-mid);
+            padding: 1rem 1.5rem;
+        }
+
+        .modal-body .bg-light.border.rounded {
+            /* For original step content, etc. */
+            background-color: var(--nm-neutral-light) !important;
+            border-color: var(--nm-neutral-mid) !important;
+            padding: 0.75rem 1rem;
+        }
+
+        .loading-spinner-modal {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        /* Clarification Modal specific button (from index.html JS) */
+        #submitClarificationButton {
+            background: var(--nm-primary-blue);
+            color: white;
+            border: none;
+            border-radius: var(--nm-border-radius);
+            padding: 0.5rem 1rem;
+        }
+
+        #submitClarificationButton:hover {
+            background: #1a75e0;
+        }
+
+        #submitClarificationButton:disabled {
+            opacity: 0.65;
+            background: var(--nm-text-light);
+        }
+
+        #submitClarificationButton .loading-spinner {
+            display: none;
+        }
+
+        /* JS will handle */
+        #submitClarificationButton .button-icon {
+            margin-right: 0.5em;
+        }
+
+        /* For dashboard.html icon */
+
+        /* Practice Check Modal button (from index.html JS) */
+        #submitPracticeCheckButton {
+            background: var(--nm-success-green);
+            color: white;
+            border: none;
+            border-radius: var(--nm-border-radius);
+            padding: 0.5rem 1rem;
+        }
+
+        #submitPracticeCheckButton:hover {
+            background: #1e7e34;
+        }
+
+        /* Darker green */
+        #submitPracticeCheckButton:disabled {
+            opacity: 0.65;
+            background: var(--nm-text-light);
+        }
+
+        #submitPracticeCheckButton .loading-spinner {
+            display: none;
+        }
+
+        #submitPracticeCheckButton .button-icon {
+            margin-right: 0.5em;
+        }
+
+        /* Refresher Modal from index.html */
+        #refresherModal .modal-title {
+            color: var(--nm-text-dark);
+            font-weight: 600;
+        }
+
+        #refresherModal .modal-body h6 {
+            color: var(--nm-primary-blue);
+            margin-top: 1rem;
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+        }
+
+        #refresherModal .refresher-content-area {
+            max-height: 250px;
+            /* Adjusted height */
+            overflow-y: auto;
+            padding: 1rem;
+            border: 1px solid var(--nm-neutral-mid);
+            border-radius: var(--nm-border-radius);
+            background-color: var(--nm-neutral-light);
+            margin-bottom: 1rem;
+            white-space: pre-wrap;
+            font-family: var(--nm-font-body);
+            line-height: 1.7;
+        }
+
+        #refresherModal .loading-spinner-modal .spinner-border {
+            color: var(--nm-primary-blue) !important;
+        }
+
+        /*--------------------------------------------------------------
+        # Utility & Animation Classes (from dashboard.html)
+        --------------------------------------------------------------*/
+        .fade-in {
+            animation: fadeInAnimation ease 0.5s;
+            animation-iteration-count: 1;
+            animation-fill-mode: forwards;
+        }
+
+        @keyframes fadeInAnimation {
+            0% {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Loading spinner general rules (JS will toggle specific spinners) */
+        .loading-spinner {
+            display: none;
+        }
+
+        /* Hidden by default */
+        button.loading .loading-spinner {
+            display: inline-block !important;
+        }
+
+        button.loading .button-text-content {
+            visibility: hidden;
+        }
+
+        button .button-text-content {
+            transition: opacity 0.3s ease;
+        }
+
+        button.loading .button-text-content {
+            opacity: 0;
+        }
