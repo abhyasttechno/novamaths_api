@@ -177,6 +177,29 @@ If a step requires a diagram for clear explanation (e.g., geometry, graphs, vect
 4.  Do NOT generate actual <svg>...</svg> tags. Only provide the data within <DIAGRAM_SVG_DATA>.
 5.  Continue with the rest of the step's explanation after the </DIAGRAM_SVG_DATA> tag if necessary.
 
+DETAILED FORMATTING FOR READABILITY (VERY IMPORTANT - Follow Strictly):
+Your primary goal is to make the solution easy to read and understand. Avoid creating dense "walls of text".
+
+1.  **Use Paragraphs Generously**:
+    *   Employ blank lines (which create new paragraphs in Markdown) to separate distinct ideas, explanations, calculation setups, equations, and results.
+    *   ALWAYS insert a blank line after a sentence or a group of closely related sentences that complete a thought, before starting a new, distinct thought or calculation step.
+    *   For instance, after explaining what you are about to calculate, insert a blank line before presenting the equation. After the equation, insert a blank line before explaining its result or moving to the next part of the reasoning.
+
+2.  **Formatting Equations**:
+    *   Present important, complex, or multi-step equations using display math ($$...$$) each on their own line.
+    *   Ensure these display equations are clearly separated by blank lines from any preceding or succeeding explanatory text.
+
+3.  **Formatting Lists**:
+    *   If using numbered or bulleted lists, ensure a blank line follows each list item, especially if the item's content is more than a few words or is followed by further explanation or another list item.
+
+4.  **Line Formatting**:
+    *   Do NOT start any line with leading spaces, unless it's for standard Markdown indentation (e.g., nested lists).
+    *   Use only a single blank line to separate paragraphs or elements. Avoid multiple consecutive blank lines.
+
+5.  **Clarity Over Extreme Conciseness**:
+    *   While explanations should be concise, prioritize clarity and readability. Proper paragraphing and spacing are more important than making the text as short as physically possible.
+    *   Break down long explanations within a single "### Step X:" into multiple, smaller, well-spaced paragraphs.
+
 If the input (text or file) is ambiguous, unclear, or not a math problem, state that politely and ask for clarification instead of guessing or providing an irrelevant solution.
 If a file is provided, analyze the content of the file (image or PDF) to identify the math problem.
 
@@ -230,7 +253,7 @@ def build_check_prompt_parts(problem_text=None, uploaded_gemini_file=None):
 Your goal is to Carefully examine the uploaded math practice problem and its solution provided by the user.
 
 Provide your feedback using Markdown formatting for clarity. This includes:
-- Using `### Main Point` or `#### Sub-point` for distinct sections or observations.
+- Using `### Main Point` or `#### Subheading` for distinct sections or observations.
 - Using blank lines between paragraphs for better readability.
 - Using bullet points (`* item` or `- item`) or numbered lists (`1. item`) for lists of observations or suggestions.
 - Using **bold** text to highlight key terms or observations (like "**Observation 1:**", "**Mistake:**", "**Correct Approach:**").
@@ -408,8 +431,13 @@ def solve_math():
        
         # --- Process Response ---
         try:
-          
             solution_text = response.text
+            # --- Improved post-processing for better readability ---
+            # import re # Already imported at the top
+            # def improve_readability(text): # Removed function
+            #     # ... (function content removed) ...
+            #     return text
+            # solution_text = improve_readability(solution_text) # Removed call
             concept_prompt = "Based on below solution of a math problem uploaded by user. Identify the concept involve in the problem to solve it. Generate the output with only provide Concept identified in the below problem. Write one liner description of the identified concept. Do not include any introductory text only give the concept involved in the problem. "
             concept_prompt += "Solution :\n" + solution_text
             response_concept =call_gemini(concept_prompt)
