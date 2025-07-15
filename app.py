@@ -81,6 +81,7 @@ CORS(app, resources={r"/solve-math": {"origins": "*"}, r"/clarify-step": {"origi
 
 
 API_KEY = os.environ['GEMINI_API_KEY']
+
 client = None # Initialize as None
 
 if not API_KEY:
@@ -407,26 +408,45 @@ def solve_math():
 
        
         # --- Process Response ---
-        try:
+        
           
-            solution_text = response.text
-            concept_prompt = "Based on below solution of a math problem uploaded by user. Identify the concept involve in the problem to solve it. Generate the output with only provide Concept identified in the below problem. Write one liner description of the identified concept. Do not include any introductory text only give the concept involved in the problem. "
-            concept_prompt += "Solution :\n" + solution_text
-            response_concept =call_gemini(concept_prompt)
-            logging.info(f"Received response_concept: {response_concept.text}")
+        solution_text = response.text
+        concept_prompt = "Based on below solution of a math problem uploaded by user. Identify the concept involve in the problem to solve it. Generate the output with only provide Concept identified in the below problem. Write one liner description of the identified concept. Do not include any introductory text only give the concept involved in the problem. "
+        concept_prompt += "Solution :\n" + solution_text
+        response_concept =call_gemini(concept_prompt)
+        logging.info(f"Received response_concept: {response_concept.text}")
 
-        except ValueError:
-            # This might occur if the response structure is unexpected or blocked in a way
-            # not caught by prompt_feedback (less common now but good to keep)
-            logging.warning(f"Accessing response.text failed. Response structure might be unexpected or blocked. Response: {response}", exc_info=True)
-            return jsonify({"error": "The AI could not process the request due to content restrictions or an unexpected response format."}), 500
-        except AttributeError:
-             logging.error(f"AttributeError accessing response data. Response: {response}", exc_info=True)
-             return jsonify({"error": "Internal server error: Failed to parse AI response structure."}), 500
-        except Exception as e:
-            # Catch any other unexpected errors during response processing
-            logging.error(f"Unexpected error extracting text from Gemini response: {e}", exc_info=True)
-            return jsonify({"error": "Internal server error: Could not parse AI response."}), 500
+            # --- NEW: Generate a Suggested Question ---
+        suggested_question_text = ""
+      
+            # Create a new prompt to generate a slightly harder question
+        suggested_question_prompt = f"""Based on the user's original problem and the provided step-by-step solution, generate ONE new follow-up question.
+
+        **Instructions:**
+        1.  The new question must test the same core mathematical concepts.
+        2.  It must be slightly more difficult or complex than the original problem. For example, use larger numbers, add an extra step, or combine it with another simple concept.
+        3.  Your response MUST BE ONLY the text of the question itself. Do not include any introductory text like "Here is a question:" or any markdown formatting.
+
+        ---
+        ORIGINAL PROBLEM: "{problem_text or 'Problem was in an uploaded file.'}"
+        ---
+        GENERATED SOLUTION:
+        {solution_text}
+        ---
+
+        Generate the slightly harder follow-up question now:
+        """
+                    # Use the simpler `call_gemini` function for this text-only generation
+        response_suggested = call_gemini(suggested_question_prompt)
+        suggested_question_text = response_suggested.text.strip()
+        logging.info(f"Generated Suggested Question: {suggested_question_text}")
+
+              
+
+        # --- UPDATE the final return statement ---
+        # Modify the existing return statement to include the new data
+       
+        
 
 
         if not solution_text or not solution_text.strip():
@@ -443,7 +463,12 @@ def solve_math():
             return jsonify({"error": "The AI returned an empty response. Please try rephrasing or check your input."}), 500
 
         # Return the solution
-        return jsonify({"solution": solution_text,"identifiedConcepts":response_concept.text})
+        return jsonify({
+        "solution": solution_text,
+        "identifiedConcepts": response_concept.text,
+        "suggestedQuestion": suggested_question_text # Add the new key
+    })
+
 
 
     except Exception as e:
@@ -473,15 +498,7 @@ def solve_math():
             except Exception as cleanup_error:
                 logging.error(f"Error cleaning up temporary file {temp_file_path}: {cleanup_error}")
 
-        # if uploaded_gemini_file_obj: # Check the object used for the API call
-        #     try:
-        #         logging.info(f"Attempting to delete uploaded file from File API: {uploaded_gemini_file_obj.name}")
-        #         genai.delete_file(name=uploaded_gemini_file_obj.name)
-        #         logging.info(f"Successfully deleted file {uploaded_gemini_file_obj.name} from File API.")
-        #     except Exception as delete_error:
-        #         logging.error(f"Error deleting file {uploaded_gemini_file_obj.name} from File API: {delete_error}")
-
-
+    
 
 
 @app.route('/check', methods=['POST'])
@@ -810,99 +827,86 @@ def practice():
 
 
 # --- NEW ENDPOINT for Step Clarification ---
+
 @app.route('/refresher', methods=['POST'])
 def refresher():
-   
     data = request.get_json()
     if not data:
         return jsonify({"error": "Invalid request body. Expected JSON."}), 400
 
-    # Extract data from request
     identified_concept = data.get('concepts', '')
-    print("identified_concept :\n",identified_concept)
-    refresher_prompt ="""You are an AI assistant designed to generate technical refreshers in a strict JSON format.
     
-    Based on the mathematical concept identified below, generate a JSON object containing the following information: concept name, a detailed description, an example, and a list of solved questions.
-    STRICT JSON FORMATTING RULES:
-    Your response MUST contain ONLY a single, valid JSON object.
-    DO NOT include any text, markdown, or characters before or after the JSON object.
-    DO NOT wrap the JSON object in markdown code blocks (e.g., DO NOT use json ...).
-    The JSON object MUST have these top-level keys: "concept_name", "concept_description", "example", "solved_questions".
-    Ensure ALL string values within the JSON (including values for keys like "example", "question", and "solution") are properly escaped for JSON (e.g., internal double quotes must be " , newlines \n, backslashes \).
-    For the "example" and "solution" keys, their values MUST be plain strings. DO NOT include markdown code blocks (like python or) inside these string values. Provide the code or math examples directly as strings.
-    The "solved_questions" key MUST contain a JSON array [...]. Each item in this array MUST be a JSON object {{...}} with exactly two keys: "question" (string) and "solution" (string).
-    Use this exact structure example (replace content with actual data):
-    {{
-    "concept_name": "<Identified Concept Name>",
-    "concept_description": "<Detailed description>",
-    "example": "<Example as plain string>",
-    "solved_questions": [
-    {{"question": "<Problem 1>", "solution": "<Solution 1 as plain string>"}},
-    {{"question": "<Problem 2>", "solution": "<Solution 2 as plain string>"}}
-    // Add more solved questions here
-    ]
-}}"""
-    refresher_prompt+=refresher_prompt + "identified concept : "+ identified_concept
+    # (inside the /refresher route)
 
-    print("refresher prompt : \n",refresher_prompt)
+    refresher_prompt = f"""You are an AI assistant generating math concept refreshers in a strict JSON format.
+
+Based on the identified concept: '{identified_concept}', generate a JSON object.
+
+**CRITICAL FORMATTING RULES (MUST be followed):**
+1.  Your entire response MUST be ONLY a single, valid JSON object. Do not include any text before or after it.
+2.  **NON-NEGOTIABLE MathJax Delimiters:** ALL mathematical expressions, formulas, and variables (like 'l', 'w', 'P') MUST be enclosed in single dollar signs for inline math. Example: `$P = 2(l + w)$`. DO NOT use markdown backticks (`).
+3.  **NON-NEGOTIABLE Solved Questions:** You MUST provide at least one relevant solved question in the `solved_questions` array. This field cannot be empty.
+4.  **Diagrams:** For concepts involving geometry, graphs, or visual elements, you MUST include a `diagram` object.
+5.  The JSON structure must be: `concept_name`, `concept_description`, `example` (object with `text` and optional `diagram`), and `solved_questions` (array of objects).
+
+**JSON Structure Example:**
+{{
+  "concept_name": "Perimeter of a Rectangle",
+  "concept_description": "The perimeter of a rectangle is the total distance around its outside. If the length is `$l$` and the width is `$w$`, the formula is `$P = 2l + 2w$` or `$P = 2(l + w)`.",
+  "example": {{
+    "text": "A rectangle has a length of `$l = 10$` cm and a width of `$w = 5$` cm. The perimeter is calculated as `$P = 2(10) + 2(5) = 20 + 10 = 30$` cm.",
+    "diagram": {{ "viewBox": "0 0 150 70", "elements": [
+        {{ "type": "rect", "x": 10, "y": 10, "width": 130, "height": 50, "stroke": "black", "strokeWidth": 2, "fill": "none"}},
+        {{ "type": "text", "x": 75, "y": 5, "text": "l = 10 cm", "textAnchor": "middle"}},
+        {{ "type": "text", "x": 5, "y": 40, "text": "w = 5 cm", "textAnchor": "end", "transform": "rotate(-90 5 40)"}}
+    ]}}
+  }},
+  "solved_questions": [
+      {{
+          "question": "What is the perimeter of a fence around a rectangular yard that is 50 feet long and 30 feet wide?",
+          "solution": {{
+              "text": "Using the formula `$P = 2(l + w)$`, we get `$P = 2(50 + 30) = 2(80) = 160$` feet.",
+              "diagram": null
+          }}
+      }}
+  ]
+}}
+"""
     
     response = call_gemini(refresher_prompt)
-    
-        
-    concept_desc = response.text # This is the AI response object from llm.invoke
-    raw_ai_content = concept_desc.strip() # Get the raw text content and strip whitespace
+    raw_ai_content = response.text.strip()
 
     if not raw_ai_content:
         logging.error("Refresher AI returned empty content.")
-        return jsonify({"error": "AI returned empty refresher content. Cannot display."}), 500 # Return error if empty
-
-    logging.info(f"Raw AI Refresher Content: {raw_ai_content}") # Log raw content for debugging
-
-    # --- Attempt to extract JSON from markdown code block ---
-    match = re.search(r'```json\s*([\s\S]*?)\s*```', raw_ai_content) # Non-greedy match for content inside ```json ```
-
+        return jsonify({"error": "AI returned empty refresher content."}), 500
+    
+    logging.info(f"Raw AI Refresher Content: {raw_ai_content}")
+    
+    # --- NEW: More robust JSON extraction ---
     json_content_to_parse = ""
-    if match:
-        json_content_to_parse = match.group(1).strip() # Extract content from the first capturing group
-        logging.info("Extracted JSON from markdown block.")
-    else:
-        # If no markdown block found, assume the entire content MIGHT be JSON
-        json_content_to_parse = raw_ai_content
-        logging.warning("No ```json ``` block found. Attempting to parse raw content as JSON.")
-
-    if not json_content_to_parse:
-        logging.error("Extracted or raw content to parse is empty.")
-        return jsonify({"error": "AI response was not in expected JSON format."}), 500
+    try:
+        # Find the first '{' and the last '}' to reliably extract the JSON object
+        start_index = raw_ai_content.index('{')
+        end_index = raw_ai_content.rindex('}')
+        json_content_to_parse = raw_ai_content[start_index : end_index + 1]
+    except ValueError:
+        # This error occurs if '{' or '}' is not found in the string
+        logging.error(f"Malformed AI response: No JSON object could be found. Raw content: {raw_ai_content}")
+        return jsonify({"error": f"Failed to find a valid JSON object in the AI's response. Raw content received: {raw_ai_content[:500]}..."}), 500
 
     try:
-        resp = json.loads(json_content_to_parse) # <-- NOW parse the EXTRACTED content
-        concept_name = resp.get("concept_name", "Concept Details") # Use .get() with default to prevent KeyError
-        concept_description = resp.get("concept_description", "Description not available.")
-        example = resp.get("example", "Example not available.")
-        # Ensure solved_questions is a list, even if AI returns something else or None
-        solved_questions_raw = resp.get("solved_questions", [])
-        solved_questions = solved_questions_raw if isinstance(solved_questions_raw, list) else []
-
-        logging.info(f"Parsed concept output: {resp}")
-
-        # Return the parsed data
-        return jsonify({
-            "concept_name": concept_name,
-            "concept_description": concept_description,
-            "example": example,
-            "solved_questions": solved_questions
-        })
+        # Now, parse the cleaned, extracted string
+        resp_data = json.loads(json_content_to_parse)
+        return jsonify(resp_data)
 
     except json.JSONDecodeError as e:
-        logging.error(f"JSON Decode Error in /refresher after extraction attempt: {e}")
-        logging.error(f"Attempted to parse: {json_content_to_parse}")
-        # Include the raw AI content in the error response for better debugging on the frontend
-        return jsonify({"error": f"Failed to parse AI response as JSON: {e}. Raw content received: {raw_ai_content[:500]}..."}), 500 # Return specific error
+        logging.error(f"JSON Decode Error in /refresher after extraction: {e}")
+        logging.error(f"Attempted to parse this extracted content: {json_content_to_parse}")
+        return jsonify({"error": f"Failed to parse AI response as JSON. Raw content received: {raw_ai_content[:500]}..."}), 500
     except Exception as e:
         logging.error(f"An unexpected error occurred during JSON processing: {e}", exc_info=True)
-        return jsonify({"error": f"An unexpected error occurred processing AI response: {type(e).__name__}"}), 500
+        return jsonify({"error": f"An unexpected error occurred while processing the AI response: {type(e).__name__}"}), 500
 
-    
 @app.route('/submit-feedback', methods=['POST'])
 def submit_feedback():
     if db is None:
