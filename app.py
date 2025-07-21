@@ -796,7 +796,7 @@ def practice():
         # response = model.generate_content(prompt_parts)
 
         response = client.models.generate_content(
-            model="gemini-2.0-flash", 
+            model=MODEL_NAME, 
             contents=[types.Content(role="user", parts=prompt_parts)]
             # stream=False # Default is False, explicitly set if needed
         )
