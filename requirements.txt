@@ -4,3 +4,4 @@ flask-cors
 langchain-google-genai
 gunicorn
 firebase-admin
+pymysql

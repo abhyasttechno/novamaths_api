@@ -17,14 +17,19 @@ import firebase_admin
 from firebase_admin import credentials
 from firebase_admin import firestore
 import datetime
+from dotenv import load_dotenv
+import pymysql.cursors
+
+load_dotenv()  # Load environment variables from .env file
 
 logging.basicConfig(level=logging.INFO)
 
 firebase_app = None
 db = None
 
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "credentials.json"
 # Option 1 (Recommended for Deployment): Load credentials from an environment variable
-firebase_credentials_json_string = os.environ.get('FIREBASE_CREDENTIALS_JSON')
+firebase_credentials_json_string = os.getenv('FIREBASE_CREDENTIALS_JSON')
 
 if firebase_credentials_json_string:
     try:
@@ -80,7 +85,7 @@ CORS(app, resources={r"/solve-math": {"origins": "*"}, r"/clarify-step": {"origi
 
 
 
-API_KEY = os.environ['GEMINI_API_KEY']
+API_KEY = os.getenv('GEMINI_API_KEY')
 
 client = None # Initialize as None
 
@@ -98,7 +103,7 @@ else:
 
 # --- Model Configuration ---
 # Choose a model appropriate for the task (multimodal if handling files)
-MODEL_NAME = "gemini-2.5-flash" # Changed to 1.5 flash - good balance
+MODEL_NAME = os.getenv('MODEL_NAME', 'gemini-2.5-flash')
 
 # Send a creative prompt to the LLM
 
@@ -907,57 +912,144 @@ Based on the identified concept: '{identified_concept}', generate a JSON object.
         logging.error(f"An unexpected error occurred during JSON processing: {e}", exc_info=True)
         return jsonify({"error": f"An unexpected error occurred while processing the AI response: {type(e).__name__}"}), 500
 
+# --- MySQL Connection Function ---
+def get_db_connection():
+    """Establishes a connection to the MySQL database."""
+    try:
+        connection = pymysql.connect(
+            host=os.getenv('DB_HOST', 'localhost'),
+            user=os.getenv('DB_USER', 'admin'),
+            password=os.getenv('DB_PASSWORD', '######'),
+            db=os.getenv('DB_NAME', 'feedback_db'),
+            port=int(os.getenv('DB_PORT', '3306')),
+            charset='utf8mb4',
+            cursorclass=pymysql.cursors.DictCursor
+        )
+        return connection
+    except pymysql.MySQLError as e:
+        print(f"Error connecting to MySQL Database: {e}")
+        return None
+
 @app.route('/submit-feedback', methods=['POST'])
 def submit_feedback():
-    if db is None:
-        print("Database not initialized.")
-        return jsonify({"error": "Database service unavailable."}), 500 # Internal Server Error
-
+    data = request.json
+    email = data.get('email')
+    rating = data.get('rating')
+    feedback = data.get('feedback')
+    app_name = 'novamath'  # Fixed application name
     try:
-        # Get data from the incoming JSON request
-        data = request.json
-        rating = data.get('rating')
-        email = data.get('email')
-        feedback = data.get('feedback')
-
-        # Basic Server-Side Validation
-        if rating is None or not isinstance(rating, int) or rating < 1 or rating > 5:
-            return jsonify({"error": "Invalid or missing rating."}), 400 # Bad Request
-        if email is None or not isinstance(email, str) or "@" not in email: # More robust email validation possible
-            return jsonify({"error": "Invalid or missing email address."}), 400 # Bad Request
-        # Feedback is optional, no validation needed beyond type check
-        if feedback is not None and not isinstance(feedback, str):
-             return jsonify({"error": "Invalid feedback format."}), 400
-
-
-        # Data structure to store in Firestore
-        feedback_entry = {
-            'rating': rating,
-            'email': email,
-            'feedback': feedback if feedback is not None else '', # Store as empty string if optional field is missing
-            'timestamp': datetime.datetime.utcnow() # Add a server-side timestamp
-        }
-
-        # Get a reference to the 'feedback' collection and add a new document
-        # Firestore automatically generates a unique ID for the document
-        doc_ref = db.collection('feedback').add(feedback_entry)
-
-        print(f"Feedback successfully written to Firestore. Document ID: {doc_ref[1].id}")
-
-        # Return a success response
-        return jsonify({"message": "Feedback submitted successfully!", "id": doc_ref[1].id}), 200 # OK
-
+        conn = get_db_connection()
+        with conn.cursor() as cursor:
+            sql = "INSERT INTO user_feedback (email, rating, feedback, application) VALUES (%s, %s, %s, %s)"
+            cursor.execute(sql, (email, rating, feedback, app_name))
+        conn.commit()
+        conn.close()
+        return jsonify({"message": "Feedback submitted successfully!", "id": ""})
     except Exception as e:
-        print(f"Error submitting feedback: {e}")
-        # Log the error properly in a real application
-        return jsonify({"error": "An error occurred while saving feedback."}), 500 # Internal Server 
+        logging.error(f"Error inserting feedback: {e}")
+        return jsonify({"error": "An error occurred while saving feedback."}), 500 # Internal Server
+
+def get_summary_from_feedback(feedback_list):
+    """Generates a summary from a list of feedback strings using Gemini."""
+    prompt = "Summarize the following user feedback into a concise overall impression of the app, " \
+        "highlighting the key positive and negative points mentioned by users. " \
+        "Provide the output only as plain text without any headings or extra formatting. " \
+        "Here is the user feedback:\n" \
+        "- " + "\n- ".join(feedback_list)
+    logging.info(f"Feedback prompt generated: {prompt}")
+    parts = [types.Part.from_text(text=prompt)]
+    contents = [
+        types.Content(
+            role="user",
+            parts=parts,
+        ),
+    ]
+    response = client.models.generate_content(
+        model=MODEL_NAME,
+        contents=contents,
+    )
+    return response.text.strip()
+
+
+def serialize_row(row):
+    return {
+        k: (v.isoformat() if isinstance(v, (datetime.datetime, datetime.date)) else v)
+        for k, v in row.items()
+    }
+
+@app.get("/feedback-report")
+def feedback_report():
+    """Generates a feedback report."""
+    
+    with get_db_connection() as conn:
+        with conn.cursor() as cursor:
+            sql = "SELECT email, rating, feedback, created_at FROM user_feedback where application='authentica'"
+            cursor.execute(sql)
+            results = cursor.fetchall()
+    
+    # Generate summary using Gemini
+    summary = get_summary_from_feedback([row['feedback'] for row in results])
+    
+    # avg rating, total ratings/feedbacks, summary, actual data
+    report = {
+        "average_rating": sum(row['rating'] for row in results) / len(results) if results else 0,
+        "total_feedbacks": len(results),
+        "summary": summary,
+        "detailed_feedbacks": [serialize_row(row) for row in results]
+    }
+
+    return report
+
+# def submit_feedback():
+#     if db is None:
+#         print("Database not initialized.")
+#         return jsonify({"error": "Database service unavailable."}), 500 # Internal Server Error
+
+#     try:
+#         # Get data from the incoming JSON request
+#         data = request.json
+#         rating = data.get('rating')
+#         email = data.get('email')
+#         feedback = data.get('feedback')
+
+#         # Basic Server-Side Validation
+#         if rating is None or not isinstance(rating, int) or rating < 1 or rating > 5:
+#             return jsonify({"error": "Invalid or missing rating."}), 400 # Bad Request
+#         if email is None or not isinstance(email, str) or "@" not in email: # More robust email validation possible
+#             return jsonify({"error": "Invalid or missing email address."}), 400 # Bad Request
+#         # Feedback is optional, no validation needed beyond type check
+#         if feedback is not None and not isinstance(feedback, str):
+#              return jsonify({"error": "Invalid feedback format."}), 400
+
+
+#         # Data structure to store in Firestore
+#         feedback_entry = {
+#             'rating': rating,
+#             'email': email,
+#             'feedback': feedback if feedback is not None else '', # Store as empty string if optional field is missing
+#             'timestamp': datetime.datetime.utcnow() # Add a server-side timestamp
+#         }
+
+#         # Get a reference to the 'feedback' collection and add a new document
+#         # Firestore automatically generates a unique ID for the document
+#         doc_ref = db.collection('feedback').add(feedback_entry)
+
+#         print(f"Feedback successfully written to Firestore. Document ID: {doc_ref[1].id}")
+
+#         # Return a success response
+#         return jsonify({"message": "Feedback submitted successfully!", "id": doc_ref[1].id}), 200 # OK
+
+#     except Exception as e:
+#         print(f"Error submitting feedback: {e}")
+#         # Log the error properly in a real application
+#         return jsonify({"error": "An error occurred while saving feedback."}), 500 # Internal Server 
 
 
 @app.route('/')
 def index():
     # You could pass data to the template here if needed
     # For this example, we just render the static template
-    return render_template('dashboard.html')
+    return render_template('index.html')
 
 
 # --- Run the Flask App ---
